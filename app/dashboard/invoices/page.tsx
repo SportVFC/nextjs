@@ -5,7 +5,11 @@ import { CreateInvoice } from '@/app/ui/invoices/buttons';
 import { lusitana } from '@/app/ui/fonts';
 import { InvoicesTableSkeleton } from '@/app/ui/skeletons';
 import { Suspense } from 'react';
- 
+
+// adding pagination
+
+import { fetchInvoicesPages } from '@/app/lib/data';
+
 export default async function Page( props : {
   searchParams?: Promise<{
     query?: string; page?: string; 
@@ -15,6 +19,16 @@ export default async function Page( props : {
   const searchParams = await props.searchParams;
   const query = searchParams?.query || '';
   const currentPage = Number(searchParams?.page) || 1;
+
+  // adding pagination 
+  /*
+  fetchInvoicesPages returns the total number of pages based on the search query. For example, 
+  if there are 12 invoices that match the search query, and each page displays 6 invoices, then 
+  the total number of pages would be 2.
+
+  Next, pass the totalPages prop to the <Pagination/> component:
+  */
+  const totalPages = await fetchInvoicesPages(query);
 
   return (
     <div className="w-full">
@@ -29,7 +43,7 @@ export default async function Page( props : {
         <Table query={query} currentPage={currentPage} />
       </Suspense>
       <div className="mt-5 flex w-full justify-center">
-        {/* <Pagination totalPages={totalPages} /> */}
+        <Pagination totalPages={totalPages} />
       </div>
     </div>
   );
