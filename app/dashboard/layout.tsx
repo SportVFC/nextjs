@@ -1,6 +1,9 @@
 // Importation d'un composant personnalisé
 import SideNav from '@/app/ui/dashboard/sidenav';
 
+
+//export const experimental_ppr = true;
+
 // Déclaration du composant Layout
 /**
  * The <Layout /> component receives a children prop. This child can either be a page or another layout.
