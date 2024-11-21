@@ -7,10 +7,15 @@ import {
   UserCircleIcon,
 } from '@heroicons/react/24/outline';
 import { Button } from '@/app/ui/button';
+import { createInvoice } from '@/app/lib/actions';
 
 export default function Form({ customers }: { customers: CustomerField[] }) {
   return (
-    <form>
+    /**
+     * Then, in your <Form> component, import the createInvoice from your actions.ts file. 
+     * Add a action attribute to the <form> element, and call the createInvoice action.
+     */
+    <form action={createInvoice}>
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
         {/* Customer Name */}
         <div className="mb-4">
