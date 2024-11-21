@@ -132,3 +132,14 @@ export async function createInvoice(formData: FormData) {
     revalidatePath('/dashboard/invoices');
     redirect('/dashboard/invoices');
   }
+
+/**
+Since this action is being called in the /dashboard/invoices path, you don't need to call redirect. 
+Calling revalidatePath will trigger a new server request and re-render the table
+
+Nous sommmes et restons sur la même page.
+ */
+  export async function deleteInvoice(id: string) {
+    await sql`DELETE FROM invoices WHERE id = ${id}`;
+    revalidatePath('/dashboard/invoices');
+  }
