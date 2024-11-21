@@ -1,7 +1,14 @@
 import Form from '@/app/ui/invoices/edit-form';
 import Breadcrumbs from '@/app/ui/invoices/breadcrumbs';
 import { fetchInvoiceById, fetchCustomers } from '@/app/lib/data';
- 
+
+/*
+Now that you know the invoice doesn't exist in your database, let's use notFound to handle it. 
+Navigate to /dashboard/invoices/[id]/edit/page.tsx, and import { notFound } from 'next/navigation'.
+
+Then, you can use a conditional to invoke notFound if the invoice doesn't exist:
+*/
+import { notFound } from 'next/navigation';
 /*
 In addition to searchParams, page components also accept a prop called params which you can use to access the id. 
 Update your <Page> component to receive the prop:
@@ -18,6 +25,10 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
         fetchInvoiceById(id),
         fetchCustomers(),
     ]);    
+
+    if (!invoice) {
+        notFound();
+      }
 
     return (
         <main>
