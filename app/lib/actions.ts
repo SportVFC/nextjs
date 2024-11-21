@@ -47,7 +47,7 @@ you also want to redirect the user back to the /dashboard/invoices page. You can
 from Next.js:
 */
 import { redirect } from 'next/navigation';
-
+/* old
 const FormSchema = z.object({
     id: z.string(),
     customerId: z.string(),
@@ -57,10 +57,50 @@ const FormSchema = z.object({
     status: z.enum(['pending', 'paid']),
     date: z.string(),
   });
-  
+  */
+
+  // update Server-Side validation
+  /*
+  // Step 1
+  - customerId - Zod already throws an error if the customer field is empty as it expects a type string. But let's add a 
+  friendly message if the user doesn't select a customer.
+  - amount - Since you are coercing the amount type from string to number, it'll default to zero if the string is empty. 
+  Let's tell Zod we always want the amount greater than 0 with the .gt() function.
+  - status - Zod already throws an error if the status field is empty as it expects "pending" or "paid". Let's also add 
+  a friendly message if the user doesn't select a status.
+  */
+  const FormSchema = z.object({
+    id: z.string(),
+    customerId: z.string({
+              invalid_type_error: 'Please select a customer.', // message d'erreur affiché si formulaire non valide
+            }),
+    amount: z.coerce
+            .number()
+            .gt(0, { message: 'Please enter an amount greater than $0.' }),
+    status: z.enum(['pending', 'paid'], {
+              invalid_type_error:  'Please select an invoice status.', 
+            }),
+    date: z.string(),
+  });
+
+  // Step 2
+  // Next, update your createInvoice action to accept two parameters - prevState and formData:
+  export type State = {
+    errors?: {
+      customerId?: string[];
+      amount?: string[];
+      status?: string[];
+    };
+    message?: string | null;
+  };
+
 const CreateInvoice = FormSchema.omit({ id: true, date: true });
 
-export async function createInvoice(formData: FormData) {
+// Step 3 --> Add "prevState: State"
+// formData - same as before.
+// prevState - contains the state passed from the useActionState hook. You won't be using 
+// it in the action in this example, but it's a required prop.
+export async function createInvoice(prevState: State, formData: FormData) {
 
     // Extract the data from formData -> get(name)
     /**
@@ -76,17 +116,47 @@ export async function createInvoice(formData: FormData) {
     */
     
     // You can then pass your rawFormData to CreateInvoice to validate the types:
-    const { customerId, amount, status } = CreateInvoice.parse({
+    /*const { customerId, amount, status } = CreateInvoice.parse({
+      customerId: formData.get('customerId'),
+        amount: formData.get('amount'),
+        status: formData.get('status'),
+    });
+    */
+
+    // Validate form fields using Zod
+    // Step 3 : Then, change the Zod parse() function to safeParse():
+    /*
+    safeParse() will return an object containing either a success or error field. 
+    This will help handle validation more gracefully without having put this logic inside the try/catch block.
+    */
+    const validatedFields = CreateInvoice.safeParse({
         customerId: formData.get('customerId'),
         amount: formData.get('amount'),
         status: formData.get('status'),
     });
+
+    // Step 4
+    // Before sending the information to your database, check if the form fields were validated correctly with a conditional:
+    // If form validation fails, return errors early. Otherwise, continue.
+    // If validatedFields isn't successful, we return the function early with the error messages from Zod.
+    if (!validatedFields.success) {
+      return {
+        errors: validatedFields.error.flatten().fieldErrors,
+        message: 'Missing Fields. Failed to Create Invoice.',
+      };
+    }    
     
     // Let's convert the amount into cents:
-    const amountInCents = amount * 100;
+    // const amountInCents = amount * 100;
 
     // Creating new dates
-    const date = new Date().toISOString().split('T')[0];
+    // const date = new Date().toISOString().split('T')[0];
+
+    // Step 5
+    // Prepare data for insertion into the database
+    const { customerId, amount, status } = validatedFields.data;
+    const amountInCents = amount * 100;
+    const date = new Date().toISOString().split('T')[0];    
 
     // Inserting the data into your database
     try {
