@@ -9,6 +9,10 @@
  */
 'use server';
 
+/* for auth */
+import { signIn } from '@/auth';
+import { AuthError } from 'next-auth';
+
 /*
 in /app/lib/definitions.ts
 export type Invoice = {
@@ -240,3 +244,32 @@ Nous sommmes et restons sur la même page.
       return { message: 'Database Error: Failed to Delete Invoice.' };
     }
   }
+
+
+/*
+Now you need to connect the auth logic with your login form. In your actions.ts file, create a new action called authenticate. 
+This action should import the signIn function from auth.ts:
+
+If there's a 'CredentialsSignin' error, you want to show an appropriate error message. 
+You can learn about NextAuth.js errors in the documentation
+
+see https://nextjs.org/learn/dashboard-app/adding-authentication
+*/
+export async function authenticate(
+  prevState: string | undefined,
+  formData: FormData,
+) {
+  try {
+    await signIn('credentials', formData);
+  } catch (error) {
+    if (error instanceof AuthError) {
+      switch (error.type) {
+        case 'CredentialsSignin':
+          return 'Invalid credentials.';
+        default:
+          return 'Something went wrong.';
+      }
+    }
+    throw error;
+  }
+}
