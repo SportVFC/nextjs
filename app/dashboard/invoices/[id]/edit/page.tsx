@@ -1,6 +1,12 @@
 import Form from '@/app/ui/invoices/edit-form';
 import Breadcrumbs from '@/app/ui/invoices/breadcrumbs';
 import { fetchInvoiceById, fetchCustomers } from '@/app/lib/data';
+import { Metadata } from 'next';
+ 
+export const metadata: Metadata = {
+  title: 'Invoices Edit',
+};
+
 
 /*
 Now that you know the invoice doesn't exist in your database, let's use notFound to handle it. 
